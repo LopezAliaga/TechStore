@@ -37,25 +37,39 @@ include 'includes/db.php';
 
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px;">
         <?php
-        $res = $conn->query("SELECT * FROM productos LIMIT 4");
-        while($p = $res->fetch_assoc()) {
-            echo '<div class="producto-card" style="text-align: center; position: relative; overflow: hidden;">';
-            // Badge de oferta
-            echo '<div style="position: absolute; top: 10px; right: 10px; background: var(--primary); color: #000; font-size: 10px; font-weight: 900; padding: 3px 8px; border-radius: 5px; box-shadow: var(--neon-glow);">NUEVO</div>';
-            
-            echo '<img src="'.$p['imagen'].'" style="width: 100%; height: 160px; object-fit: contain; margin-bottom: 15px;">';
-            echo '<h3 style="margin: 10px 0; font-size: 16px; min-height: 40px;">'.$p['nombre'].'</h3>';
-            echo '<h2 class="neon-text" style="font-size: 24px; margin-bottom: 20px;">S/ '.$p['precio'].'</h2>';
-            
-            echo '<form method="POST" action="productos.php">';
-            echo '<input type="hidden" name="producto_id" value="'.$p['id'].'">';
-            echo '<button type="submit" name="agregar_carrito" class="btn-neon" style="width: 100%; font-size: 12px; padding: 12px;">';
-            echo '<i class="fa-solid fa-cart-plus"></i> AÑADIR AL SETUP';
-            echo '</button>';
-            echo '</form>';
-            echo '</div>';
-        }
-        ?>
+$res = $conn->query("SELECT * FROM productos LIMIT 4");
+while($p = $res->fetch_assoc()) {
+    echo '<div class="producto-card" style="text-align: center; position: relative; overflow: hidden;">';
+    
+    // Badge de oferta
+    echo '<div style="position: absolute; top: 10px; right: 10px; background: var(--primary); color: #000; font-size: 10px; font-weight: 900; padding: 3px 8px; border-radius: 5px; box-shadow: var(--neon-glow);">NUEVO</div>';
+    
+    // --- LÓGICA DE IMAGEN (Esto es lo que faltaba) ---
+    $imagen_db = $p['imagen'];
+    if (filter_var($imagen_db, FILTER_VALIDATE_URL)) {
+        $ruta_index = $imagen_db;
+    } else {
+        // Apuntamos a la carpeta productos que confirmamos antes
+        $ruta_index = "img/productos/" . trim($imagen_db);
+    }
+
+    echo '<img src="' . $ruta_index . '" 
+               style="height: 180px; width: 100%; object-fit: contain; margin: 20px 0;" 
+               onerror="this.src=\'https://via.placeholder.com/300?text=Hardware\'">';
+    // --- FIN LÓGICA DE IMAGEN ---
+
+    echo '<h3 style="margin: 10px 0; font-size: 16px; min-height: 40px;">'.$p['nombre'].'</h3>';
+    echo '<h2 class="neon-text" style="font-size: 24px; margin-bottom: 20px;">S/ '.$p['precio'].'</h2>';
+    
+    echo '<form method="POST" action="productos.php">';
+    echo '<input type="hidden" name="producto_id" value="'.$p['id'].'">';
+    echo '<button type="submit" name="agregar_carrito" class="btn-neon" style="width: 100%; font-size: 12px; padding: 12px;">';
+    echo '<i class="fa-solid fa-cart-plus"></i> AÑADIR AL SETUP';
+    echo '</button>';
+    echo '</form>';
+    echo '</div>';
+}
+?>
     </div>
 </div>
 

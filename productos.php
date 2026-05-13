@@ -157,7 +157,18 @@ if(isset($_POST['agregar_carrito'])) {
                 if ($resultado->num_rows > 0) {
                     while($fila = $resultado->fetch_assoc()) {
                         echo '<div class="producto-card" style="padding: 20px;">';
-                        echo '<img src="'.$fila['imagen'].'" style="height: 120px; object-fit: contain; margin-bottom: 15px;">';
+                        // Código actualizado para la Opción 2
+                        $imagen = $fila['imagen'];
+
+                        // Verificamos si es un link de internet (como los de Flaticon)
+                        if (filter_var($imagen, FILTER_VALIDATE_URL)) {
+                            $ruta_final = $imagen;
+                        } else {
+                            // Si es un archivo local, le decimos que busque en la carpeta que vimos en tu captura
+                            $ruta_final = "img/productos/" . $imagen;
+                        }
+
+                        echo '<img src="' . $ruta_final . '" style="height: 220px; width: 100%; object-fit: contain; margin-bottom: 15px;" onerror="this.src=\'img/placeholder.jpg\'">';
                         echo '<h3 style="margin: 0 0 10px 0; font-size: 15px; color: #fff;">'.$fila['nombre'].'</h3>';
                         echo '<h2 style="color: var(--primary); margin: 10px 0;">S/ '.$fila['precio'].'</h2>';
                         
