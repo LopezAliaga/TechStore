@@ -120,80 +120,105 @@ if(isset($_POST['agregar_carrito'])) {
     details[open] summary i { transform: rotate(90deg); transition: 0.3s; }
     summary i { transition: 0.3s; }
 </style>
+<main>
+    <?php
+    // LÓGICA DEL CEREBRO: ¿Qué quiere ver el usuario?
+    $titulo = "Catálogo Completo";
+    $sql = "SELECT * FROM productos";
 
-        <main>
-            <?php
-            // LÓGICA DEL CEREBRO: ¿Qué quiere ver el usuario?
-            $titulo = "Catálogo Completo";
-            $sql = "SELECT * FROM productos"; // Por defecto muestra todo
+    // Búsqueda
+    if (isset($_GET['buscar']) && !empty($_GET['buscar'])) {
 
-            if(isset($_GET['buscar']) && !empty($_GET['buscar'])) {
-                // Si usó el buscador de la cabecera
-                $busqueda = $conn->real_escape_string($_GET['buscar']);
-                $titulo = "Búsqueda: '$busqueda'";
-                $sql = "SELECT * FROM productos WHERE nombre LIKE '%$busqueda%' OR descripcion LIKE '%$busqueda%'";
-                
-            } elseif(isset($_GET['categoria'])) {
-                // Si hizo clic en el menú lateral
-                $cat_id = (int)$conn->real_escape_string($_GET['categoria']);
-                // Esta lógica busca si es una categoría papá, y si lo es, trae también lo de sus hijos
-                $sql = "SELECT * FROM productos WHERE categoria_id = $cat_id 
-                        OR categoria_id IN (SELECT id FROM categorias WHERE padre_id = $cat_id)";
-                
-                // Buscamos el nombre de la categoría para ponerlo de título
-                $nom_cat = $conn->query("SELECT nombre FROM categorias WHERE id = $cat_id");
-                if($row_cat = $nom_cat->fetch_assoc()) {
-                    $titulo = "Filtrando: " . $row_cat['nombre'];
-                }
-            }
-            
-            echo "<h2 style='margin-top: 0; display: flex; align-items: center; gap: 10px;'><i class='fa-solid fa-bolt' style='color: var(--primary);'></i> $titulo</h2>";
-            ?>
+        $busqueda = $conn->real_escape_string($_GET['buscar']);
+        $titulo = "Búsqueda: '$busqueda'";
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 20px; margin-top: 20px;">
-                <?php
-                $resultado = $conn->query($sql);
+        $sql = "SELECT * FROM productos 
+                WHERE nombre LIKE '%$busqueda%' 
+                OR descripcion LIKE '%$busqueda%'";
 
-                if ($resultado->num_rows > 0) {
-                    while($fila = $resultado->fetch_assoc()) {
-                        echo '<div class="producto-card" style="padding: 20px;">';
-                        // Código actualizado para la Opción 2
-                        $imagen = $fila['imagen'];
+    // Categoría
+    } elseif (isset($_GET['categoria'])) {
 
-                        // Verificamos si es un link de internet (como los de Flaticon)
-                        if (filter_var($imagen, FILTER_VALIDATE_URL)) {
-                            $ruta_final = $imagen;
-                        } else {
-                            // Si es un archivo local, le decimos que busque en la carpeta que vimos en tu captura
-                            $ruta_final = "img/productos/" . $imagen;
-                        }
+        $cat_id = (int) $_GET['categoria'];
 
-                        echo '<img src="' . $ruta_final . '" style="height: 220px; width: 100%; object-fit: contain; margin-bottom: 15px;" onerror="this.src=\'img/placeholder.jpg\'">';
-                        echo '<h3 style="margin: 0 0 10px 0; font-size: 15px; color: #fff;">'.$fila['nombre'].'</h3>';
-                        echo '<h2 style="color: var(--primary); margin: 10px 0;">S/ '.$fila['precio'].'</h2>';
-                        
-                        if($fila['stock'] <= $fila['stock_minimo']) {
-                            echo '<p style="color: #ff4a4a; font-size: 12px; margin-bottom: 15px;"><i class="fa-solid fa-fire"></i> ¡ALERTA! Quedan '.$fila['stock'].'</p>';
-                        } else {
-                            echo '<p style="color: #8892b0; font-size: 12px; margin-bottom: 15px;"><i class="fa-solid fa-check"></i> Stock: '.$fila['stock'].'</p>';
-                        }
-                        
-                        // Botón de compra
-                        echo '<form method="POST">';
-                        echo '<input type="hidden" name="producto_id" value="'.$fila['id'].'">';
-                        echo '<button type="submit" name="agregar_carrito" class="btn" style="width: 100%; font-size: 13px;"><i class="fa-solid fa-cart-plus"></i> Añadir</button>';
-                        echo '</form>';
-                        echo '</div>';
-                    }
+        $sql = "SELECT * FROM productos 
+                WHERE categoria_id = $cat_id 
+                OR categoria_id IN (SELECT id FROM categorias WHERE padre_id = $cat_id)";
+
+        $nom_cat = $conn->query("SELECT nombre FROM categorias WHERE id = $cat_id");
+        if ($row_cat = $nom_cat->fetch_assoc()) {
+            $titulo = "Filtrando: " . $row_cat['nombre'];
+        }
+    }
+
+    echo "<h2 style='margin-top: 0; display: flex; align-items: center; gap: 10px;'>
+    <i class='fa-solid fa-bolt' style='color: var(--primary);'></i> $titulo</h2>";
+    ?>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 20px; margin-top: 20px;">
+
+        <?php
+        $resultado = $conn->query($sql);
+
+        if ($resultado && $resultado->num_rows > 0) {
+
+            while ($fila = $resultado->fetch_assoc()) {
+
+                echo '<div class="producto-card" style="padding: 20px;">';
+
+                $imagen = trim($fila['imagen']);
+
+                if (filter_var($imagen, FILTER_VALIDATE_URL)) {
+                    $ruta_final = $imagen;
                 } else {
-                    echo "<div style='grid-column: 1 / -1; padding: 50px; text-align: center; background: var(--card-bg); border-radius: 12px;'>";
-                    echo "<h3 style='color: #ff4a4a;'><i class='fa-solid fa-ghost fa-2x'></i><br><br>Uy, no tenemos productos en esta categoría por ahora.</h3>";
-                    echo "</div>";
+
+                    // Quitar "img/" que viene desde la BD
+                    $imagen = str_replace("img/", "", $imagen);
+
+                    // Corregir espacios
+                    $imagen = str_replace(" ", "%20", $imagen);
+
+                    $ruta_final = "img/productos/" . $imagen;
                 }
-                ?>
-            </div>
-        </main>
-        
+                echo '<img src="' . $ruta_final . '" 
+                        style="height: 220px; width: 100%; object-fit: contain; margin-bottom: 15px;" 
+                        onerror="this.src=\'img/placeholder.jpg\'">';
+
+                echo '<h3 style="margin: 0 0 10px 0; font-size: 15px; color: #fff;">' . $fila['nombre'] . '</h3>';
+                echo '<h2 style="color: var(--primary); margin: 10px 0;">S/ ' . $fila['precio'] . '</h2>';
+
+                // Stock
+                if ($fila['stock'] <= $fila['stock_minimo']) {
+                    echo '<p style="color: #ff4a4a; font-size: 12px; margin-bottom: 15px;">
+                            <i class="fa-solid fa-fire"></i> ¡ALERTA! Quedan ' . $fila['stock'] . '
+                        </p>';
+                } else {
+                    echo '<p style="color: #8892b0; font-size: 12px; margin-bottom: 15px;">
+                            <i class="fa-solid fa-check"></i> Stock: ' . $fila['stock'] . '
+                        </p>';
+                }
+
+                // Botón carrito
+                echo '<form method="POST">';
+                echo '<input type="hidden" name="producto_id" value="' . $fila['id'] . '">';
+                echo '<button type="submit" name="agregar_carrito" class="btn" style="width: 100%; font-size: 13px;">
+                        <i class="fa-solid fa-cart-plus"></i> Añadir
+                    </button>';
+                echo '</form>';
+
+                echo '</div>';
+            }
+
+        } else {
+            echo "<div style='grid-column: 1 / -1; padding: 50px; text-align: center; background: var(--card-bg); border-radius: 12px;'>";
+            echo "<h3 style='color: #ff4a4a;'><i class='fa-solid fa-ghost fa-2x'></i><br><br>
+                Uy, no tenemos productos en esta categoría por ahora.</h3>";
+            echo "</div>";
+        }
+        ?>
+
+    </div>
+</main>
     </div>
 </body>
 </html>
