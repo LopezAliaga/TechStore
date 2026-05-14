@@ -1,22 +1,43 @@
-<?php 
-include 'header.php'; 
-include 'includes/db.php'; 
+<?php
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
+include 'includes/db.php';
 
 if (isset($_POST['ingresar'])) {
+
     $email = $conn->real_escape_string($_POST['email']);
     $pass = $_POST['password'];
 
-    $res = $conn->query("SELECT * FROM usuarios WHERE email = '$email' AND password = '$pass'");
+    $res = $conn->query("SELECT * FROM usuarios 
+                         WHERE email='$email' 
+                         AND password='$pass'");
+
     if ($res->num_rows > 0) {
+
         $u = $res->fetch_assoc();
+
         $_SESSION['usuario_id'] = $u['id'];
         $_SESSION['nombre'] = $u['nombre'];
         $_SESSION['rol'] = $u['rol'];
-        header("Location: index.php");
+
+        session_write_close();
+
+        if($u['rol']=="administrador"){
+            header("Location: admin.php");
+        } else {
+            header("Location: index.php");
+        }
+
+        exit();
+
     } else {
         echo "<script>alert('Datos incorrectos, acceso denegado.');</script>";
     }
 }
+
+include 'header.php';
 ?>
 
 <div class="container" style="display: flex; justify-content: center; align-items: center; min-height: 80vh;">
