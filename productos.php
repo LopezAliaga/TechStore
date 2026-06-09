@@ -197,6 +197,15 @@ if(isset($_POST['agregar_carrito'])) {
                       </p>';
                 
                 echo '<h2 style="color: var(--primary); margin: 10px 0;">S/ ' . $fila['precio'] . '</h2>';
+                echo '<a href="detalleProducto.php?id='.$fila['id'].'"
+                    class="btn-neon"
+                    style="
+                        display:block;
+                        text-align:center;
+                        margin-bottom:10px;
+                        text-decoration:none;">
+                    Ver Detalles
+                  </a>';
 
                 // Stock
                 if ($fila['stock'] <= $fila['stock_minimo']) {
