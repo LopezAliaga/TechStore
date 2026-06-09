@@ -1,0 +1,86 @@
+Paso 1: Crear servidor MongoDB
+
+En Debian:
+
+sudo apt update
+
+Instalar Docker:
+
+sudo apt install docker.io -y
+
+Verificar:
+
+docker --version
+Paso 2: Descargar MongoDB
+docker pull mongo
+Paso 3: Crear contenedor
+docker run -d
+--name mongodb
+-p 27017:27017
+mongo
+
+Verificar:
+
+docker ps
+
+Debe aparecer:
+
+mongodb
+27017
+Paso 4: Entrar a MongoDB
+docker exec -it mongodb mongosh
+
+Crear base:
+
+use techstore_social
+Paso 5: Colección de comentarios
+db.comentarios.insertOne({
+producto_id: 1,
+usuario: "Marie",
+estrellas: 5,
+comentario: "Excelente producto",
+fecha: new Date()
+})
+Paso 6: Ver comentarios
+db.comentarios.find()
+Cómo lo usarías en el proyecto
+
+Cuando el usuario haga:
+
+RTX 4090
+⭐⭐⭐⭐⭐
+Excelente tarjeta
+
+No se guarda en MariaDB.
+
+Se guarda en MongoDB:
+
+{
+"producto_id": 1,
+"usuario": "Marie",
+"estrellas": 5,
+"comentario": "Excelente tarjeta",
+"fecha": "2026-06-09"
+}
+Para el chatbot
+
+Crear colección:
+
+db.chatbot.insertOne({
+pregunta: "Mi pedido no llegó",
+respuesta:
+"Su caso será revisado por soporte y nos comunicaremos con usted."
+})
+Para reacciones
+db.reacciones.insertOne({
+producto_id: 1,
+usuario: "Carlos",
+reaccion: "❤️"
+})
+Para compartir
+db.compartidos.insertOne({
+producto_id: 1,
+usuario: "Juan",
+red: "Facebook",
+fecha: new Date()
+})
