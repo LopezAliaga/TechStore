@@ -183,8 +183,19 @@ if(isset($_POST['agregar_carrito'])) {
                 echo '<img src="' . $ruta_final . '" 
                         style="height: 220px; width: 100%; object-fit: contain; margin-bottom: 15px;" 
                         onerror="this.src=\'img/placeholder.jpg\'">';
-
-                echo '<h3 style="margin: 0 0 10px 0; font-size: 15px; color: #fff;">' . $fila['nombre'] . '</h3>';
+                echo '<h3 style="margin: 0 0 10px 0; font-size: 15px; color: #fff;">'
+                     .$fila['nombre'].
+                     '</h3>';
+                
+                echo '<p style="
+                        color:#b0b0b0;
+                        font-size:13px;
+                        min-height:50px;
+                        margin-bottom:10px;
+                        line-height:1.4;">
+                        '.$fila['descripcion'].'
+                      </p>';
+                
                 echo '<h2 style="color: var(--primary); margin: 10px 0;">S/ ' . $fila['precio'] . '</h2>';
 
                 // Stock
